@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../features/dialer/call_bloc.dart';
-import '../features/dialer/call_state.dart';
-import '../core/call_repository.dart';
-import '../features/contacts/contact_repository.dart';
+import 'features/dialer/call_bloc.dart';
+import 'features/dialer/call_state.dart';
+import 'core/call_repository.dart';
+import 'features/contacts/contact_repository.dart';
 
 void main() {
   runApp(const MyApp());
