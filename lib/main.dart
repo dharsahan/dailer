@@ -53,7 +53,6 @@ class _DialerPageState extends State<DialerPage> {
     _searchContacts();
   }
 
-  // ignore: unused_element
   void _onDelete() {
     if (_input.isNotEmpty) {
       setState(() {
@@ -143,22 +142,32 @@ class _DialerPageState extends State<DialerPage> {
         _buildRow(['*', '0', '#']),
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: FloatingActionButton(
-            backgroundColor: Colors.green,
-            shape: const CircleBorder(),
-            onPressed: () async {
-              if (_input.isNotEmpty) {
-                try {
-                  await context.read<CallBloc>().makeCall(_input);
-                } catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error making call: $e')),
-                  );
-                }
-              }
-            },
-            child: const Icon(Icons.call, color: Colors.white),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              const SizedBox(width: 48), // Spacer to balance layout
+              FloatingActionButton(
+                backgroundColor: Colors.green,
+                shape: const CircleBorder(),
+                onPressed: () async {
+                  if (_input.isNotEmpty) {
+                    try {
+                      await context.read<CallBloc>().makeCall(_input);
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error making call: $e')),
+                      );
+                    }
+                  }
+                },
+                child: const Icon(Icons.call, color: Colors.white),
+              ),
+              IconButton(
+                onPressed: _onDelete,
+                icon: const Icon(Icons.backspace, size: 30, color: Colors.grey),
+              ),
+            ],
           ),
         ),
       ],
