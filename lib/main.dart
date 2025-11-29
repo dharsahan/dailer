@@ -22,12 +22,23 @@ class MyApp extends StatelessWidget {
       child: BlocProvider(
         create: (context) => CallBloc(context.read<CallRepository>()),
         child: MaterialApp(
-          title: 'iOS Style Dialer',
+          title: 'Material 3 Dialer',
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple, // More expressive default
+              brightness: Brightness.light,
+            ),
             useMaterial3: true,
-            fontFamily: 'San Francisco', // Fallback will be used if not found
+            // Fallback font, but ideally we use standard Roboto/Product Sans for M3
           ),
+          darkTheme: ThemeData(
+             colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple,
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          themeMode: ThemeMode.system,
           home: const DialerPage(),
         ),
       ),
@@ -77,10 +88,15 @@ class _DialerPageState extends State<DialerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Keypad'),
+        title: Text('Keypad', style: theme.textTheme.titleLarge),
+        backgroundColor: colorScheme.surface,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_phone),
@@ -111,7 +127,17 @@ class _DialerPageState extends State<DialerPage> {
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text(_searchResults[index]),
+                    leading: CircleAvatar(
+                      backgroundColor: colorScheme.primaryContainer,
+                      child: Text(
+                        _searchResults[index][0],
+                        style: TextStyle(color: colorScheme.onPrimaryContainer),
+                      ),
+                    ),
+                    title: Text(
+                      _searchResults[index],
+                      style: theme.textTheme.bodyLarge,
+                    ),
                     onTap: () {
                         // In a real app, this would fill the number
                     },
@@ -120,35 +146,43 @@ class _DialerPageState extends State<DialerPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
               child: Text(
                 _input,
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                style: theme.textTheme.displayMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            _buildKeypad(),
+            _buildKeypad(context),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildKeypad() {
+  Widget _buildKeypad(BuildContext context) {
     return Column(
       children: [
-        _buildRow(['1', '2', '3']),
-        _buildRow(['4', '5', '6']),
-        _buildRow(['7', '8', '9']),
-        _buildRow(['*', '0', '#']),
+        _buildRow(context, ['1', '2', '3']),
+        _buildRow(context, ['4', '5', '6']),
+        _buildRow(context, ['7', '8', '9']),
+        _buildRow(context, ['*', '0', '#']),
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(vertical: 24.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const SizedBox(width: 48), // Spacer to balance layout
-              FloatingActionButton(
-                backgroundColor: Colors.green,
-                shape: const CircleBorder(),
+              const SizedBox(width: 56), // Placeholder for alignment
+              FloatingActionButton.large(
+                heroTag: 'call_btn',
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                shape: const CircleBorder(), // Classic round FAB or slightly rounded for M3
                 onPressed: () async {
                   if (_input.isNotEmpty) {
                     try {
@@ -161,11 +195,13 @@ class _DialerPageState extends State<DialerPage> {
                     }
                   }
                 },
-                child: const Icon(Icons.call, color: Colors.white),
+                child: const Icon(Icons.call, size: 36),
               ),
               IconButton(
                 onPressed: _onDelete,
-                icon: const Icon(Icons.backspace, size: 30, color: Colors.grey),
+                icon: const Icon(Icons.backspace_outlined),
+                iconSize: 28,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ],
           ),
@@ -174,31 +210,31 @@ class _DialerPageState extends State<DialerPage> {
     );
   }
 
-  Widget _buildRow(List<String> keys) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: keys.map((key) {
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => _onKeyPress(key),
-            child: Container(
-              width: 70,
-              height: 70,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                shape: BoxShape.circle,
+  Widget _buildRow(BuildContext context, List<String> keys) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: keys.map((key) {
+          return SizedBox(
+            width: 72,
+            height: 72,
+            child: FilledButton.tonal(
+              onPressed: () => _onKeyPress(key),
+              style: FilledButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: EdgeInsets.zero,
               ),
               child: Text(
                 key,
-                style: const TextStyle(fontSize: 28),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                   fontWeight: FontWeight.w400,
+                ),
               ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -209,28 +245,57 @@ class CallScreen extends StatelessWidget {
 
     @override
     Widget build(BuildContext context) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+
         return Scaffold(
-            backgroundColor: Colors.black87,
-            body: Center(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                        const Icon(Icons.person, size: 100, color: Colors.white),
-                        const SizedBox(height: 20),
-                        Text(state.number, style: const TextStyle(color: Colors.white, fontSize: 30)),
-                        const SizedBox(height: 10),
-                        Text(state.status.toString().split('.').last.toUpperCase(), style: const TextStyle(color: Colors.grey, fontSize: 16)),
-                        const SizedBox(height: 50),
-                        FloatingActionButton(
-                            backgroundColor: Colors.red,
+            backgroundColor: colorScheme.surface,
+            body: SafeArea(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 60),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 48,
+                              backgroundColor: colorScheme.tertiaryContainer,
+                              child: Icon(Icons.person, size: 48, color: colorScheme.onTertiaryContainer),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              state.number,
+                              style: theme.textTheme.headlineLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              )
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              state.status.toString().split('.').last.toUpperCase(),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                letterSpacing: 1.5,
+                              )
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 60),
+                        child: FloatingActionButton.large(
+                            backgroundColor: colorScheme.error,
+                            foregroundColor: colorScheme.onError,
+                            shape: const CircleBorder(),
                             onPressed: () {
                                 // Implement Hangup
                                 Navigator.pop(context);
                             },
-                            child: const Icon(Icons.call_end),
-                        )
-                    ],
-                ),
+                            child: const Icon(Icons.call_end, size: 36),
+                        ),
+                      )
+                  ],
+              ),
             ),
         );
     }
